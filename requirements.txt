@@ -1,0 +1,9 @@
+streamlit
+langchain
+python-dotenv
+streamlit-monaco
+langchain-openai
+openai
+gql
+requests-toolbelt
+langchainhub
