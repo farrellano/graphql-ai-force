@@ -1,13 +1,14 @@
 from langchain import hub
-from langchain.agents import load_tools, AgentExecutor, create_json_chat_agent
+from langchain.agents import load_tools, AgentExecutor, create_json_chat_agent, AgentOutputParser
+from langchain.load.dump import dumps
 from langchain_openai import AzureChatOpenAI
 from streamlit_monaco import st_monaco
 import streamlit as st
 import os
+import json
 
 os.environ["AZURE_OPENAI_API_KEY"] = ""
 os.environ["AZURE_OPENAI_ENDPOINT"] = ""
-
 
 def render():
     st.title("Graphql AI Force 🤖")
@@ -24,7 +25,7 @@ def render():
 
         toolsg = load_tools(
             ["graphql"],
-            graphql_endpoint="https://search-svc-paris-cl.ecomm-stg.cencosud.com/graphql",
+            graphql_endpoint="",
         )
 
         prompthub = hub.pull("hwchase17/react-chat-json")
@@ -36,11 +37,18 @@ def render():
             tools=toolsg,
             verbose=True,
             max_iterations=1,
-            handle_parsing_errors=True
+            handle_parsing_errors=True,
+            return_intermediate_steps=True
         )
-        result = agent_executor.invoke({"input": prompt + " stored in the graphql database that has this schema " + content},
+
+        try:
+            result = agent_executor.invoke({"input": prompt + " stored in the graphql database that has this schema " + content},
                                        return_only_outputs=True)
-        st.write(result)
+            st.json(json.loads(json.loads(dumps(result["intermediate_steps"][0][1], pretty=True))))
+        except Exception as e:
+            st.error('This is an error: ' + e, icon="🚨")
+        
+        
 
 
 def main():
